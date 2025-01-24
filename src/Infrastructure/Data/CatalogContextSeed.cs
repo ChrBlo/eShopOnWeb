@@ -18,6 +18,7 @@ public class CatalogContextSeed
         {
             if (catalogContext.Database.IsSqlServer())
             {
+                catalogContext.Database.EnsureCreated();
                 catalogContext.Database.Migrate();
             }
 

@@ -12,6 +12,7 @@ public class AppIdentityDbContextSeed
 
         if (identityDbContext.Database.IsSqlServer())
         {
+            identityDbContext.Database.EnsureCreated();
             identityDbContext.Database.Migrate();
         }
 
