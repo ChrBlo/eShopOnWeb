@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using System.Threading.Tasks;
 using Ardalis.GuardClauses;
 using Microsoft.eShopWeb.ApplicationCore.Entities;
@@ -47,6 +48,18 @@ public class OrderService : IOrderService
         }).ToList();
 
         var order = new Order(basket.BuyerId, shippingAddress, items);
+
+        Random rand = new Random();
+        int randomNumber = rand.Next(1, 11);
+
+        if (randomNumber > 0 && randomNumber <= 3)
+        {
+            order.SetToDelivered();
+        }
+        if (randomNumber > 7 && randomNumber <= 10)
+        {
+            order.SetToOutForDelivery();
+        }
 
         await _orderRepository.AddAsync(order);
     }

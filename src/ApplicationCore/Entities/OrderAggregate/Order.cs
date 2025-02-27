@@ -7,8 +7,8 @@ namespace Microsoft.eShopWeb.ApplicationCore.Entities.OrderAggregate;
 
 public class Order : BaseEntity, IAggregateRoot
 {
-    #pragma warning disable CS8618 // Required by Entity Framework
-    private Order() {}
+#pragma warning disable CS8618 // Required by Entity Framework
+    private Order() { }
 
     public Order(string buyerId, Address shipToAddress, List<OrderItem> items)
     {
@@ -19,6 +19,7 @@ public class Order : BaseEntity, IAggregateRoot
         _orderItems = items;
     }
 
+    public string Status { get; private set; } = "Pending";
     public string BuyerId { get; private set; }
     public DateTimeOffset OrderDate { get; private set; } = DateTimeOffset.Now;
     public Address ShipToAddress { get; private set; }
@@ -43,5 +44,15 @@ public class Order : BaseEntity, IAggregateRoot
             total += item.UnitPrice * item.Units;
         }
         return total;
+    }
+
+    public void SetToOutForDelivery()
+    {
+        Status = "Out for Delivery";
+    }
+
+    public void SetToDelivered()
+    {
+        Status = "Delivered";
     }
 }
