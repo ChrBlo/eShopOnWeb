@@ -16,16 +16,20 @@ public class OrderService : IOrderService
     private readonly IUriComposer _uriComposer;
     private readonly IRepository<Basket> _basketRepository;
     private readonly IRepository<CatalogItem> _itemRepository;
+    private readonly IDiscountRepository _discountRepository;
+
 
     public OrderService(IRepository<Basket> basketRepository,
         IRepository<CatalogItem> itemRepository,
         IRepository<Order> orderRepository,
-        IUriComposer uriComposer)
+        IUriComposer uriComposer,
+        IDiscountRepository discountRepository)
     {
         _orderRepository = orderRepository;
         _uriComposer = uriComposer;
         _basketRepository = basketRepository;
         _itemRepository = itemRepository;
+        _discountRepository = discountRepository;
     }
 
     public async Task CreateOrderAsync(int basketId, Address shippingAddress)
@@ -36,18 +40,17 @@ public class OrderService : IOrderService
         Guard.Against.Null(basket, nameof(basket));
         Guard.Against.EmptyBasketOnCheckout(basket.Items);
 
-        var catalogItemsSpecification = new CatalogItemsSpecification(basket.Items.Select(item => item.CatalogItemId).ToArray());
-        var catalogItems = await _itemRepository.ListAsync(catalogItemsSpecification);
+        var catalogItems = await _itemRepository.ListAsync(new CatalogItemsSpecification(basket.Items.Select(item => item.CatalogItemId).ToArray()));
 
-        var items = basket.Items.Select(basketItem =>
-        {
-            var catalogItem = catalogItems.First(c => c.Id == basketItem.CatalogItemId);
-            var itemOrdered = new CatalogItemOrdered(catalogItem.Id, catalogItem.Name, _uriComposer.ComposePicUri(catalogItem.PictureUri));
-            var orderItem = new OrderItem(itemOrdered, basketItem.UnitPrice, basketItem.Quantity);
-            return orderItem;
-        }).ToList();
+        var itemsOrdered = basket.Items.Select(basketItem =>
+            {
+                var catalogItem = catalogItems.First(c => c.Id == basketItem.CatalogItemId);
+                var itemOrdered = new CatalogItemOrdered(catalogItem.Id, catalogItem.Name, _uriComposer.ComposePicUri(catalogItem.PictureUri));
+                var orderItem = new OrderItem(itemOrdered, basketItem.UnitPrice, basketItem.Quantity);
+                return orderItem;
+            }).ToList();
 
-        var order = new Order(basket.BuyerId, shippingAddress, items);
+        var order = new Order(basket.BuyerId, shippingAddress, itemsOrdered);
 
         Random rand = new Random();
         int randomNumber = rand.Next(1, 11);
@@ -59,6 +62,14 @@ public class OrderService : IOrderService
         if (randomNumber > 7 && randomNumber <= 10)
         {
             order.SetToOutForDelivery();
+        }
+
+        if (basket.BasketDiscount != null && basket.BasketDiscount.IsValid())
+        {
+            order.ApplyDiscount(basket.BasketDiscount);
+
+            // Mark the discount as used
+            await _discountRepository.SetDiscountAsUsedAsync(basket.BasketDiscount.DiscountId);
         }
 
         await _orderRepository.AddAsync(order);

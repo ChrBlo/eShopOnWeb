@@ -80,7 +80,8 @@ public class BasketViewModelService : IBasketViewModelService
         {
             BuyerId = basket.BuyerId,
             Id = basket.Id,
-            Items = await GetBasketItems(basket.Items)
+            Items = await GetBasketItems(basket.Items),
+            BasketDiscount = basket.BasketDiscount
         };
     }
 

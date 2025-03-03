@@ -27,7 +27,9 @@ public class GetMyOrdersHandler : IRequestHandler<GetMyOrders, IEnumerable<Order
             OrderNumber = o.Id,
             ShippingAddress = o.ShipToAddress,
             Status = o.Status,
-            Total = o.Total()
+            Total = o.Total(),
+            OrderDiscount = o.OrderDiscount(),
+            TotalAfterDiscount = o.TotalAfterDiscount()
         });
     }
 }

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.eShopWeb.ApplicationCore.Entities;
+using Microsoft.eShopWeb.ApplicationCore.Entities.BasketAggregate;
 using Microsoft.Extensions.Logging;
 
 namespace Microsoft.eShopWeb.Infrastructure.Data;
@@ -44,13 +45,21 @@ public class CatalogContextSeed
 
                 await catalogContext.SaveChangesAsync();
             }
+
+            if (!await catalogContext.Discounts.AnyAsync())
+            {
+                await catalogContext.Discounts.AddRangeAsync(
+                    GetPreconfiguredDiscounts());
+
+                await catalogContext.SaveChangesAsync();
+            }
         }
         catch (Exception ex)
         {
             if (retryForAvailability >= 10) throw;
 
             retryForAvailability++;
-            
+
             logger.LogError(ex.Message);
             await SeedAsync(catalogContext, logger, retryForAvailability);
             throw;
@@ -96,6 +105,15 @@ public class CatalogContextSeed
                 new(3,2, ".NET Foundation Sheet", ".NET Foundation Sheet", 12, "http://catalogbaseurltobereplaced/images/products/10.png"),
                 new(3,2, "Cup<T> Sheet", "Cup<T> Sheet", 8.5M, "http://catalogbaseurltobereplaced/images/products/11.png"),
                 new(2,5, "Prism White TShirt", "Prism White TShirt", 12, "http://catalogbaseurltobereplaced/images/products/12.png")
+            };
+    }
+
+    static IEnumerable<BasketDiscount> GetPreconfiguredDiscounts()
+    {
+        return new List<BasketDiscount>
+            {
+                new BasketDiscount(-1, "SUVNET24", 50.0, false),
+                new BasketDiscount(-2, "SPECIAL20", 20.0, false)
             };
     }
 }

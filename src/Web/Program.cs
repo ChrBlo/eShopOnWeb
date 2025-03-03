@@ -98,4 +98,5 @@ app.MapHealthChecks("api_health_check", new HealthCheckOptions { Predicate = che
 app.MapFallbackToFile("index.html");
 
 app.Logger.LogInformation("LAUNCHING");
+
 app.Run();
