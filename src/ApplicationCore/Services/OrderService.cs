@@ -67,8 +67,6 @@ public class OrderService : IOrderService
         if (basket.BasketDiscount != null && basket.BasketDiscount.IsValid())
         {
             order.ApplyDiscount(basket.BasketDiscount);
-
-            // Mark the discount as used
             await _discountRepository.SetDiscountAsUsedAsync(basket.BasketDiscount.DiscountId);
         }
 

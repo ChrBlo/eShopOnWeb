@@ -21,15 +21,15 @@ public class GetMyOrdersHandler : IRequestHandler<GetMyOrders, IEnumerable<Order
         var specification = new CustomerOrdersSpecification(request.UserName);
         var orders = await _orderRepository.ListAsync(specification, cancellationToken);
 
-        return orders.Select(o => new OrderViewModel
+        return orders.Select(order => new OrderViewModel
         {
-            OrderDate = o.OrderDate,
-            OrderNumber = o.Id,
-            ShippingAddress = o.ShipToAddress,
-            Status = o.Status,
-            Total = o.Total(),
-            OrderDiscount = o.OrderDiscount(),
-            TotalAfterDiscount = o.TotalAfterDiscount()
+            OrderDate = order.OrderDate,
+            OrderNumber = order.Id,
+            ShippingAddress = order.ShipToAddress,
+            Status = order.Status,
+            Total = order.Total(),
+            OrderDiscount = order.OrderDiscount(),
+            TotalAfterDiscount = order.TotalAfterDiscount()
         });
     }
 }

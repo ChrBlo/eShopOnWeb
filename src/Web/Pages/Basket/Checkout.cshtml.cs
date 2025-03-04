@@ -70,7 +70,7 @@ public class CheckoutModel : PageModel
             _logger.LogWarning(emptyBasketOnCheckoutException.Message);
             return RedirectToPage("/Basket/Index");
         }
-
+        
         return RedirectToPage("Success");
     }
 
@@ -104,11 +104,7 @@ public class CheckoutModel : PageModel
 
     public async Task<IActionResult> OnPostValidateDiscountCodeAsync(string discountCode)
     {
-        _logger.LogInformation($"Validating discount code: {discountCode}");
-
         await SetBasketModelAsync();
-
-        _logger.LogInformation($"Basket ID: {BasketModel.Id}, Item Count: {BasketModel.Items.Count}");
 
         if (string.IsNullOrEmpty(discountCode))
         {
@@ -117,7 +113,6 @@ public class CheckoutModel : PageModel
             return Page();
         }
 
-        _logger.LogInformation($"Checking if discount code '{discountCode}' is valid");
         var isValid = await _discountRepository.CheckIfDiscountIsValidAsync(discountCode);
 
         if (!isValid)
@@ -127,11 +122,7 @@ public class CheckoutModel : PageModel
             return Page();
         }
 
-        _logger.LogInformation($"Discount code '{discountCode}' is valid, retrieving details");
         var discount = await _discountRepository.GetDiscountCodeByIdAsync(discountCode);
-        _logger.LogInformation($"Got discount: ID={discount?.DiscountId}, Value={discount?.DiscountPercentage}%");
-
-        _logger.LogInformation($"Getting basket with ID: {BasketModel.Id}");
         var basket = await _basketRepository.GetByIdAsync(BasketModel.Id);
 
         if (basket == null)
@@ -141,14 +132,9 @@ public class CheckoutModel : PageModel
             return Page();
         }
 
-        _logger.LogInformation("Applying discount to basket");
         basket.ApplyDiscount(discount);
         await _basketRepository.UpdateAsync(basket);
-        _logger.LogInformation("Discount applied and basket updated");
-
-        // Refresh the basket model
         await SetBasketModelAsync();
-        _logger.LogInformation("Basket model refreshed, returning page");
 
         return Page();
     }
